@@ -9,9 +9,7 @@
     "clean": "npx rimraf dist",
     "build": "npm run clean && npx rollup -c rollup.config.js",
     "lint": "npx eslint src/index.js test/index.js",
-    "test": "npx mocha --require @babel/register ./test/index.js",
-    "prepare": "npm run build",
-    "prepublish": "npm run lint && npm test"
+    "test": "npx mocha --require @babel/register ./test/index.js"
   },
   "repository": {
     "type": "git",
