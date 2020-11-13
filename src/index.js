@@ -133,16 +133,16 @@ export function imagemin (userOptions = {}) {
               console.log(chalk.green.bold(`${logPrefix} Optimized ${outputFileName}: ${smaller ? `~${difference}% smaller 🎉` : chalk.red(`~${difference}% bigger 🤕`)}`));
             }
 
-            return `export default new URL("${outputFileName}", import.meta.url).href;`;
+            return `export default new URL("${pluginOptions.publicPath}${outputFileName}", import.meta.url).href;`;
           }).catch(error => {
             this.error(`${logPrefix} Couldn't optimize image: ${error}`);
           });
         } else {
           hash = crypto.createHash("sha1").update(buffer).digest("hex").substr(0, pluginOptions.hashLength);
-          outputFileName = path.join(pluginOptions.publicPath, pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
+          outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
           assets[outputFileName] = buffer;
 
-          return `export default new URL("${outputFileName}", import.meta.url).href;`;
+          return `export default new URL("${pluginOptions.publicPath}${outputFileName}", import.meta.url).href;`;
         }
       }).catch(error => {
         this.error(`${logPrefix} Couldn't read asset from disk: ${error}`);
