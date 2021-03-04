@@ -11,7 +11,7 @@ var crypto = _interopDefault(require('crypto'));
 var pluginutils = require('@rollup/pluginutils');
 var chalk = _interopDefault(require('chalk'));
 var mkpath = _interopDefault(require('mkpath'));
-var imagemin = _interopDefault(require('imagemin'));
+var imageminVendor = _interopDefault(require('imagemin'));
 var imageminJpegtran = _interopDefault(require('imagemin-mozjpeg'));
 var imageminPngquant = _interopDefault(require('imagemin-optipng'));
 var imageminGifsicle = _interopDefault(require('imagemin-gifsicle'));
@@ -105,7 +105,7 @@ const dropUndefinedKeys = obj => Object.entries(obj).reduce((acc, [key, val]) =>
   return acc;
 }, {});
 
-function index (userOptions = {}) {
+function imagemin(userOptions = {}) {
   // Default options
   const defaultOptions = getDefaultOptions(); // Remove `undefined` user options
 
@@ -145,6 +145,8 @@ function index (userOptions = {}) {
     },
 
     load(id) {
+      id = path.resolve(id); // Normalise id to match native representation. Required if used with Vite which uses Unix style paths for id.
+
       if (!filter(id)) {
         return null;
       }
@@ -155,11 +157,11 @@ function index (userOptions = {}) {
         let hash, outputFileName;
 
         if (!pluginOptions.disable) {
-          return imagemin.buffer(buffer, {
+          return imageminVendor.buffer(buffer, {
             plugins: pluginOptions.plugins
           }).then(optimizedBuffer => {
             hash = crypto.createHash("sha1").update(optimizedBuffer).digest("hex").substr(0, pluginOptions.hashLength);
-            outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname));
+            outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
             assets[outputFileName] = optimizedBuffer;
 
             if (pluginOptions.verbose) {
@@ -176,7 +178,7 @@ function index (userOptions = {}) {
           });
         } else {
           hash = crypto.createHash("sha1").update(buffer).digest("hex").substr(0, pluginOptions.hashLength);
-          outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname));
+          outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
           assets[outputFileName] = buffer;
           return `export default new URL("${pluginOptions.publicPath}${outputFileName}", import.meta.url).href;`;
         }
@@ -204,6 +206,6 @@ function index (userOptions = {}) {
   };
 }
 
-exports.default = index;
 exports.getDefaultOptions = getDefaultOptions;
+exports.imagemin = imagemin;
 //# sourceMappingURL=index.cjs.js.map

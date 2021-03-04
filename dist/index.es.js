@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { createFilter } from '@rollup/pluginutils';
 import chalk from 'chalk';
 import mkpath from 'mkpath';
-import imagemin from 'imagemin';
+import imageminVendor from 'imagemin';
 import imageminJpegtran from 'imagemin-mozjpeg';
 import imageminPngquant from 'imagemin-optipng';
 import imageminGifsicle from 'imagemin-gifsicle';
@@ -55,7 +55,7 @@ const dropUndefinedKeys = obj => Object.entries(obj).reduce((acc, [key, val]) =>
   return acc;
 }, {});
 
-function index (userOptions = {}) {
+function imagemin (userOptions = {}) {
   // Default options
   const defaultOptions = getDefaultOptions();
 
@@ -102,6 +102,7 @@ function index (userOptions = {}) {
       }
     },
     load (id) {
+      id = path.resolve(id); // Normalise id to match native representation. Required if used with Vite which uses Unix style paths for id.
       if (!filter(id)) {
         return null;
       }
@@ -116,11 +117,11 @@ function index (userOptions = {}) {
         let hash, outputFileName;
 
         if (!pluginOptions.disable) {
-          return imagemin.buffer(buffer, {
+          return imageminVendor.buffer(buffer, {
             plugins: pluginOptions.plugins
           }).then(optimizedBuffer => {
             hash = crypto.createHash("sha1").update(optimizedBuffer).digest("hex").substr(0, pluginOptions.hashLength);
-            outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname));
+            outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
             assets[outputFileName] = optimizedBuffer;
 
             if (pluginOptions.verbose) {
@@ -137,7 +138,7 @@ function index (userOptions = {}) {
           });
         } else {
           hash = crypto.createHash("sha1").update(buffer).digest("hex").substr(0, pluginOptions.hashLength);
-          outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname));
+          outputFileName = path.join(pluginOptions.fileName.replace(/\[name\]/i, name).replace(/\[hash\]/i, hash).replace(/\[extname\]/i, extname)).replace(/\\/g, "/");
           assets[outputFileName] = buffer;
 
           return `export default new URL("${pluginOptions.publicPath}${outputFileName}", import.meta.url).href;`;
@@ -166,6 +167,5 @@ function index (userOptions = {}) {
   };
 }
 
-export default index;
-export { getDefaultOptions };
+export { getDefaultOptions, imagemin };
 //# sourceMappingURL=index.es.js.map
